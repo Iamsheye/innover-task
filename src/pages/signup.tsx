@@ -1,7 +1,9 @@
+import { useState } from "react";
 import type { NextPage } from "next";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import axios from "axios";
+import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { signupSchema } from "../utils/schemas";
@@ -15,7 +17,7 @@ import {
 } from "../components/Form";
 import Title from "../components/Title/Title";
 import ErrorText from "../components/ErrorText/ErrorText";
-
+import Loading from "../components/Loading/Loading";
 interface IFormInputs {
   email: string;
   pword: string;
@@ -49,6 +51,7 @@ const Signup: NextPage = () => {
   ];
 
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
@@ -60,18 +63,19 @@ const Signup: NextPage = () => {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
+      setIsSubmitting(true);
       const res = await axios.post("/user/create", {
         email: data.email,
         password: data.pword,
         userType: data.role,
         fullName: data.fullName,
       });
-      console.log(res.data);
-      // WRITE SUCCESSFUL TOAST HERE
+      toast.success("Signup successful");
       router.push("/login");
-    } catch (err) {
-      // WRITE ERROR TOAST HERE
-      console.log(err);
+    } catch (err: any) {
+      toast.error(err.response.data.message || "An error occured");
+    } finally {
+      setIsSubmitting(false);
     }
   });
 
@@ -108,7 +112,9 @@ const Signup: NextPage = () => {
               <option value="teacher">Teacher</option>
             </FormSelect>
           </FormGroup>
-          <Button type="submit">Sign Up</Button>
+          <Button type="submit">
+            {isSubmitting ? <Loading /> : "Sign Up"}
+          </Button>
         </form>
       </Container>
     </>

@@ -1,5 +1,7 @@
+import { useState } from "react";
 import type { NextPage } from "next";
 import Head from "next/head";
+import toast from "react-hot-toast";
 import axios from "axios";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -9,6 +11,7 @@ import Container from "../components/Container/Container";
 import { FormGroup, FormInput, FormLabel } from "../components/Form";
 import Title from "../components/Title/Title";
 import ErrorText from "../components/ErrorText/ErrorText";
+import Loading from "../components/Loading/Loading";
 
 interface ILoginForm {
   email: string;
@@ -33,6 +36,8 @@ const Login: NextPage = () => {
     },
   ];
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -43,16 +48,18 @@ const Login: NextPage = () => {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
+      setIsSubmitting(true);
       const res = await axios.post("/user/login", {
         email: data.email,
         password: data.pword,
       });
-      console.log(res.data);
+
       document.cookie = `userId=${res.data._id}`;
-      // WRITE SUCCESSFUL TOAST HERE
-    } catch (err) {
-      // WRITE ERROR TOAST HERE
-      console.log(err);
+      toast.success("Login successful");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "An error occured");
+    } finally {
+      setIsSubmitting(false);
     }
   });
 
@@ -83,7 +90,7 @@ const Login: NextPage = () => {
               <ErrorText>{errors[field.name]?.message}</ErrorText>
             </FormGroup>
           ))}
-          <Button type="submit">Log in</Button>
+          <Button type="submit">{isSubmitting ? <Loading /> : "Log in"}</Button>
         </form>
       </Container>
     </>
