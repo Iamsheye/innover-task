@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 interface FormInputProps {
   dark?: boolean;
-  error?: boolean;
+  error?: string;
 }
 
 const FormInput = styled.input<FormInputProps>`

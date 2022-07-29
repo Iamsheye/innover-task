@@ -18,6 +18,15 @@ interface ILoginForm {
   pword: string;
 }
 
+export interface APIResponse {
+  _id: string;
+  email: string;
+  fullName: string;
+  userType: string;
+}
+
+type ILoginFormKeys = keyof ILoginForm;
+
 const Login: NextPage = () => {
   const FormFields = [
     {
@@ -36,20 +45,17 @@ const Login: NextPage = () => {
     },
   ];
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<ILoginForm>({
     resolver: yupResolver(loginSchema),
   });
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      setIsSubmitting(true);
-      const res = await axios.post("/user/login", {
+      const res = await axios.post<APIResponse>("/user/login", {
         email: data.email,
         password: data.pword,
       });
@@ -58,8 +64,6 @@ const Login: NextPage = () => {
       toast.success("Login successful");
     } catch (err: any) {
       toast.error(err.response?.data?.message || "An error occured");
-    } finally {
-      setIsSubmitting(false);
     }
   });
 
@@ -78,16 +82,16 @@ const Login: NextPage = () => {
               <FormLabel htmlFor={field.id}>{field.label}</FormLabel>
               <FormInput
                 dark
-                {...register(field.name as any)}
-                // @ts-ignore
-                error={errors[field.name]?.message}
+                {...register(field.name as ILoginFormKeys)}
+                error={errors[field.name as ILoginFormKeys]?.message}
                 type={field.type}
                 id={field.id}
                 name={field.name}
                 placeholder={field.placeholder}
               />
-              {/* @ts-ignore */}
-              <ErrorText>{errors[field.name]?.message}</ErrorText>
+              <ErrorText>
+                {errors[field.name as ILoginFormKeys]?.message}
+              </ErrorText>
             </FormGroup>
           ))}
           <Button type="submit">{isSubmitting ? <Loading /> : "Log in"}</Button>

@@ -18,12 +18,14 @@ import {
 import Title from "../components/Title/Title";
 import ErrorText from "../components/ErrorText/ErrorText";
 import Loading from "../components/Loading/Loading";
+import { APIResponse } from "./login";
 interface IFormInputs {
   email: string;
   pword: string;
   fullName: string;
   role: string;
 }
+type IFormInputsKeys = keyof IFormInputs;
 
 const Signup: NextPage = () => {
   const FormFields = [
@@ -51,20 +53,18 @@ const Signup: NextPage = () => {
   ];
 
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<IFormInputs>({
     resolver: yupResolver(signupSchema),
   });
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      setIsSubmitting(true);
-      const res = await axios.post("/user/create", {
+      const res = await axios.post<APIResponse>("/user/create", {
         email: data.email,
         password: data.pword,
         userType: data.role,
@@ -74,8 +74,6 @@ const Signup: NextPage = () => {
       router.push("/login");
     } catch (err: any) {
       toast.error(err.response.data.message || "An error occured");
-    } finally {
-      setIsSubmitting(false);
     }
   });
 
@@ -93,16 +91,16 @@ const Signup: NextPage = () => {
             <FormGroup key={field.id}>
               <FormLabel htmlFor={field.id}>{field.label}</FormLabel>
               <FormInput
-                {...register(field.name as any)}
-                // @ts-ignore
-                error={errors[field.name]?.message}
+                {...register(field.name as IFormInputsKeys)}
+                error={errors[field.name as IFormInputsKeys]?.message}
                 type={field.type}
                 id={field.id}
                 name={field.name}
                 placeholder={field.placeholder}
               />
-              {/* @ts-ignore */}
-              <ErrorText>{errors[field.name]?.message}</ErrorText>
+              <ErrorText>
+                {errors[field.name as IFormInputsKeys]?.message}
+              </ErrorText>
             </FormGroup>
           ))}
           <FormGroup id="sel">
